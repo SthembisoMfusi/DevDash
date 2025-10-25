@@ -6,7 +6,11 @@ import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true}), PassportModule.register({ session: true }),AuthModule,],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PassportModule.register({ session: true }),
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
