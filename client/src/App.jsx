@@ -11,14 +11,20 @@ function App() {
     useEffect(() => {
         async function checkUserStatus() {
             try {
+                console.log('Checking user status...')
                 const response = await fetch('http://localhost:3000/auth/status', {
                     credentials: 'include',
                 })
 
+                console.log('Response status:', response.status)
+                console.log('Response headers:', response.headers)
+
                 if (response.ok) {
                     const userData = await response.json()
+                    console.log('User data received:', userData)
                     setUser(userData)
                 } else {
+                    console.log('Response not ok:', response.status, response.statusText)
                     setUser(null)
                 }
             } catch (error) {

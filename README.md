@@ -20,7 +20,20 @@ DevDash is a developer-first Agile project management tool designed to eliminate
    ```
 
 2. **Set up PostgreSQL database:**
+   
+   **Option A: Using Docker (Recommended)**
    ```bash
+   # Start PostgreSQL in Docker
+   docker run --name devdash-postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=devdash -p 5432:5432 -d postgres:13
+   ```
+   
+   **Option B: Using system PostgreSQL**
+   ```bash
+   # Install and start PostgreSQL
+   sudo pacman -S postgresql
+   sudo systemctl start postgresql
+   sudo systemctl enable postgresql
+   
    # Create database
    createdb devdash
    ```

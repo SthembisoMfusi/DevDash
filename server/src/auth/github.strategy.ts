@@ -31,14 +31,14 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       const user = await this.prisma.user.upsert({
         where: { githubId: parseInt(profile.id) },
         update: {
-          username: profile.username,
+          username: profile.username || profile.id,
           email: profile.emails?.[0]?.value,
           name: profile.displayName,
           avatarUrl: profile.photos?.[0]?.value,
         },
         create: {
           githubId: parseInt(profile.id),
-          username: profile.username,
+          username: profile.username || profile.id,
           email: profile.emails?.[0]?.value,
           name: profile.displayName,
           avatarUrl: profile.photos?.[0]?.value,
