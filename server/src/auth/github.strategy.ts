@@ -27,31 +27,25 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     try {
       console.log('GitHub Profile:', profile.username);
 
-      // Find or create user in database
-      const user = await this.prisma.user.upsert({
+      // Find user by githubId (if already linked)
+      let user = await this.prisma.user.findUnique({
         where: { githubId: parseInt(profile.id) },
-        update: {
-          username: profile.username || profile.id,
-          email: profile.emails?.[0]?.value,
-          name: profile.displayName,
-          avatarUrl: profile.photos?.[0]?.value,
-        },
-        create: {
-          githubId: parseInt(profile.id),
-          username: profile.username || profile.id,
-          email: profile.emails?.[0]?.value,
-          name: profile.displayName,
-          avatarUrl: profile.photos?.[0]?.value,
-        },
       });
 
-      // Store access token for future GitHub API calls
-      const userWithToken = {
-        ...user,
-        githubAccessToken: accessToken,
-      };
+      if (user) {
+        // Update GitHub info
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            githubUsername: profile.username || profile.id,
+            githubAccessToken: accessToken,
+            githubLinkedAt: new Date(),
+          },
+        });
+      }
 
-      done(null, userWithToken);
+      // Return user with access token for linking
+      done(null, user ? { ...user, githubAccessToken: accessToken } : null);
     } catch (error) {
       console.error('Error in GitHub strategy validation:', error);
       done(error, null);

@@ -43,7 +43,7 @@ function Settings() {
         fetch('http://localhost:3000/projects', {
           credentials: 'include',
         }),
-      )
+      ]);
 
       if (reposRes.ok) {
         const repos = await reposRes.json()

@@ -11,6 +11,7 @@ import IssueDetail from './pages/IssueDetail'
 import Milestones from './pages/Milestones'
 import Settings from './pages/Settings'
 import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
 import './App.css'
 
 const theme = createTheme({
@@ -191,7 +192,38 @@ function App() {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <LoginPage />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: '#1E1E1E',
+              color: '#F9FAFB',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: 12,
+              padding: '16px',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: '#F9FAFB',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#F9FAFB',
+              },
+            },
+            duration: 3000,
+          }}
+        />
+        <Router>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Router>
       </ThemeProvider>
     )
   }

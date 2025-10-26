@@ -10,43 +10,69 @@ import {
   TextField,
   Divider,
 } from '@mui/material'
-import { Github, Mail, Lock } from 'lucide-react'
+import { Github, Mail, Lock, User, FileText } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-function LoginPage() {
-  const [emailOrUsername, setEmailOrUsername] = useState('')
-  const [password, setPassword] = useState('')
+function SignupPage() {
+  const [formData, setFormData] = useState({
+    email: '',
+    username: '',
+    firstName: '',
+    lastName: '',
+    password: '',
+    confirmPassword: '',
+    bio: '',
+  })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Client-side validation
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+
+    // Check password complexity
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    if (!passwordRegex.test(formData.password)) {
+      toast.error('Password must contain uppercase, lowercase, number, and special character')
+      return
+    }
+    
     setLoading(true)
     
     try {
-      const res = await fetch('http://localhost:3000/auth/login', {
+      const res = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ emailOrUsername, password }),
+        body: JSON.stringify(formData),
       })
       
+      const data = await res.json()
+      
       if (res.ok) {
-        const data = await res.json()
-        toast.success('Login successful!')
-        navigate('/')
+        toast.success('Account created successfully!')
+        navigate('/login')
       } else {
-        const error = await res.json()
-        toast.error(error.message || 'Login failed')
+        toast.error(data.message || 'Registration failed')
       }
     } catch (error) {
-      toast.error('Login failed')
+      toast.error('Registration failed')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGitHubLogin = () => {
+  const handleGitHubSignup = () => {
     window.location.href = 'http://localhost:3000/auth/github'
   }
 
@@ -128,7 +154,7 @@ function LoginPage() {
           </Typography>
 
           <Typography variant="h6" color="text.secondary" align="center" gutterBottom>
-            Agile Project Tracker for Developers
+            Create your account
           </Typography>
 
           <Card
@@ -146,29 +172,90 @@ function LoginPage() {
                 component="h2"
                 sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}
               >
-                Sign in to DevDash
+                Join DevDash
               </Typography>
-              
-              <Box component="form" onSubmit={handleLogin} sx={{ mt: 3 }}>
+
+              <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
                 <TextField
                   fullWidth
-                  label="Email or Username"
-                  value={emailOrUsername}
-                  onChange={(e) => setEmailOrUsername(e.target.value)}
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   sx={{ mb: 2 }}
+                  required
                   InputProps={{
                     startAdornment: <Mail size={20} style={{ marginRight: 8, color: '#9CA3AF' }} />,
+                  }}
+                />
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <TextField
+                    fullWidth
+                    label="First Name"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    required
+                    InputProps={{
+                      startAdornment: <User size={20} style={{ marginRight: 8, color: '#9CA3AF' }} />,
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Last Name"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    required
+                    InputProps={{
+                      startAdornment: <User size={20} style={{ marginRight: 8, color: '#9CA3AF' }} />,
+                    }}
+                  />
+                </Box>
+                <TextField
+                  fullWidth
+                  label="Username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  sx={{ mb: 2 }}
+                  required
+                  InputProps={{
+                    startAdornment: <User size={20} style={{ marginRight: 8, color: '#9CA3AF' }} />,
                   }}
                 />
                 <TextField
                   fullWidth
                   label="Password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  sx={{ mb: 3 }}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  sx={{ mb: 2 }}
+                  required
+                  helperText="Must contain: uppercase, lowercase, number, and special character"
                   InputProps={{
                     startAdornment: <Lock size={20} style={{ marginRight: 8, color: '#9CA3AF' }} />,
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Confirm Password"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  sx={{ mb: 2 }}
+                  required
+                  InputProps={{
+                    startAdornment: <Lock size={20} style={{ marginRight: 8, color: '#9CA3AF' }} />,
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Bio (Optional)"
+                  multiline
+                  rows={3}
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  sx={{ mb: 3 }}
+                  InputProps={{
+                    startAdornment: <FileText size={20} style={{ marginRight: 8, color: '#9CA3AF', marginTop: -40 }} />,
                   }}
                 />
                 <Button
@@ -185,7 +272,7 @@ function LoginPage() {
                     mb: 2,
                   }}
                 >
-                  {loading ? 'Signing in...' : 'Sign In'}
+                  {loading ? 'Creating account...' : 'Sign Up'}
                 </Button>
               </Box>
 
@@ -200,7 +287,7 @@ function LoginPage() {
                 variant="outlined"
                 size="large"
                 startIcon={<Github size={20} />}
-                onClick={handleGitHubLogin}
+                onClick={handleGitHubSignup}
                 sx={{
                   py: 1.5,
                   borderRadius: 2,
@@ -210,31 +297,19 @@ function LoginPage() {
                   borderColor: 'rgba(255, 255, 255, 0.1)',
                 }}
               >
-                Sign in with GitHub
+                Sign up with GitHub
               </Button>
 
               <Box sx={{ textAlign: 'center', mt: 3 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Don't have an account?{' '}
-                  <Link to="/signup" style={{ color: '#6366F1', textDecoration: 'none' }}>
-                    Sign up
+                  Already have an account?{' '}
+                  <Link to="/login" style={{ color: '#6366F1', textDecoration: 'none' }}>
+                    Sign in
                   </Link>
                 </Typography>
               </Box>
             </CardContent>
           </Card>
-
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Features:
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • GitHub Integration • Issue Tracking • Milestone Management
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • Automated Workflows • Real-time Updates • Team Collaboration
-            </Typography>
-          </Box>
         </Box>
       </Container>
 
@@ -250,4 +325,4 @@ function LoginPage() {
   )
 }
 
-export default LoginPage
+export default SignupPage
