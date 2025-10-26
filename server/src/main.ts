@@ -3,10 +3,18 @@ import { AppModule } from './app.module';
 import session from 'express-session';
 import { ConfigService } from '@nestjs/config';
 import passport from 'passport';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
+  // Enable validation pipes
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
 
   app.enableCors({
     origin: 'http://localhost:5173',
