@@ -14,30 +14,27 @@ import {
   Avatar,
   CircularProgress,
   Alert,
+  IconButton,
 } from '@mui/material'
 import {
-  Add as AddIcon,
-  Folder as FolderIcon,
-  Assignment as AssignmentIcon,
-  Flag as FlagIcon,
-  TrendingUp as TrendingUpIcon,
-  BugReport as BugIcon,
-  Star as StarIcon,
-} from '@mui/icons-material'
+  Folder,
+  FileText,
+  Flag,
+  TrendingUp,
+  Plus,
+  ArrowRight,
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import CreateProjectModal from '../components/CreateProjectModal'
+import EmptyState from '../components/EmptyState'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState([])
-  const [recentIssues, setRecentIssues] = useState([])
-  const [stats, setStats] = useState({
-    totalProjects: 0,
-    openIssues: 0,
-    completedIssues: 0,
-    activeMilestones: 0,
-  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [createProjectOpen, setCreateProjectOpen] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
@@ -45,29 +42,16 @@ function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [projectsResponse, issuesResponse] = await Promise.all([
-        fetch('http://localhost:3000/projects', {
-          credentials: 'include',
-        }),
-        fetch('http://localhost:3000/issues?projectId=1', { // This will need to be dynamic
-          credentials: 'include',
-        }),
-      ])
+      const response = await fetch('http://localhost:3000/projects', {
+        credentials: 'include',
+      })
 
-      if (projectsResponse.ok) {
-        const projectsData = await projectsResponse.json()
+      if (response.ok) {
+        const projectsData = await response.json()
         setProjects(projectsData)
-        setStats(prev => ({ ...prev, totalProjects: projectsData.length }))
-      }
-
-      if (issuesResponse.ok) {
-        const issuesData = await issuesResponse.json()
-        setRecentIssues(issuesData.slice(0, 5))
-        setStats(prev => ({
-          ...prev,
-          openIssues: issuesData.filter(issue => issue.status !== 'DONE').length,
-          completedIssues: issuesData.filter(issue => issue.status === 'DONE').length,
-        }))
+        setError(null)
+      } else {
+        setError('Failed to load projects')
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -77,24 +61,15 @@ function Dashboard() {
     }
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'TODO': return 'default'
-      case 'IN_PROGRESS': return 'primary'
-      case 'IN_REVIEW': return 'warning'
-      case 'DONE': return 'success'
-      default: return 'default'
-    }
+  const handleProjectCreated = (newProject) => {
+    setProjects([newProject, ...projects])
   }
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'LOW': return 'success'
-      case 'MEDIUM': return 'warning'
-      case 'HIGH': return 'error'
-      case 'URGENT': return 'error'
-      default: return 'default'
-    }
+  const stats = {
+    totalProjects: projects.length,
+    totalIssues: projects.reduce((sum, p) => sum + (p._count?.issues || 0), 0),
+    completedIssues: 0, // Will be calculated when we have issues
+    activeMilestones: projects.reduce((sum, p) => sum + (p._count?.milestones || 0), 0),
   }
 
   if (loading) {
@@ -111,59 +86,139 @@ function Dashboard() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
-      
+      {/* Header Section */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            Dashboard
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Overview of your projects and activity
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Plus size={20} />}
+          onClick={() => setCreateProjectOpen(true)}
+          sx={{ borderRadius: 2 }}
+        >
+          New Project
+        </Button>
+      </Box>
+
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ bgcolor: '#151515', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <FolderIcon color="primary" sx={{ mr: 1 }} />
+              <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
-                  <Typography variant="h6">{stats.totalProjects}</Typography>
-                  <Typography color="text.secondary">Projects</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#6366F1' }}>
+                    {stats.totalProjects}
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                    Projects
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 2,
+                    bgcolor: 'rgba(99, 102, 241, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Folder size={28} color="#6366F1" />
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ bgcolor: '#151515', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <AssignmentIcon color="warning" sx={{ mr: 1 }} />
+              <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
-                  <Typography variant="h6">{stats.openIssues}</Typography>
-                  <Typography color="text.secondary">Open Issues</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#F59E0B' }}>
+                    {stats.totalIssues}
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                    Total Issues
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 2,
+                    bgcolor: 'rgba(245, 158, 11, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <FileText size={28} color="#F59E0B" />
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ bgcolor: '#151515', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <TrendingUpIcon color="success" sx={{ mr: 1 }} />
+              <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
-                  <Typography variant="h6">{stats.completedIssues}</Typography>
-                  <Typography color="text.secondary">Completed</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#10B981' }}>
+                    {stats.completedIssues}
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                    Completed
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 2,
+                    bgcolor: 'rgba(16, 185, 129, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <TrendingUp size={28} color="#10B981" />
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ bgcolor: '#151515', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <FlagIcon color="info" sx={{ mr: 1 }} />
+              <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
-                  <Typography variant="h6">{stats.activeMilestones}</Typography>
-                  <Typography color="text.secondary">Milestones</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#3B82F6' }}>
+                    {stats.activeMilestones}
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                    Milestones
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 2,
+                    bgcolor: 'rgba(59, 130, 246, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Flag size={28} color="#3B82F6" />
                 </Box>
               </Box>
             </CardContent>
@@ -171,107 +226,108 @@ function Dashboard() {
         </Grid>
       </Grid>
 
-      <Grid container spacing={3}>
-        {/* Projects Section */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Recent Projects</Typography>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => navigate('/projects')}
-                >
-                  New Project
-                </Button>
-              </Box>
-              {projects.length === 0 ? (
-                <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
-                  No projects yet. Create your first project to get started!
-                </Typography>
-              ) : (
-                <List>
-                  {projects.slice(0, 5).map((project) => (
-                    <ListItem
-                      key={project.id}
-                      button
-                      onClick={() => navigate(`/projects/${project.id}`)}
-                    >
-                      <ListItemIcon>
-                        <FolderIcon />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={project.name}
-                        secondary={`${project._count?.issues || 0} issues`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
+      {/* Projects Section */}
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Your Projects
+          </Typography>
+          {projects.length > 0 && (
+            <Button
+              size="small"
+              endIcon={<ArrowRight size={16} />}
+              onClick={() => navigate('/projects')}
+              sx={{ color: 'text.secondary' }}
+            >
+              View all
+            </Button>
+          )}
+        </Box>
 
-        {/* Recent Issues Section */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Recent Issues</Typography>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => navigate('/issues')}
+        {projects.length === 0 ? (
+          <EmptyState
+            icon={Folder}
+            title="No projects yet"
+            description="Get started by creating your first project to organize and track your development work."
+            actionLabel="Create Your First Project"
+            onAction={() => setCreateProjectOpen(true)}
+          />
+        ) : (
+          <Grid container spacing={3}>
+            {projects.map((project) => (
+              <Grid item xs={12} sm={6} md={4} key={project.id}>
+                <Card
+                  sx={{
+                    bgcolor: '#151515',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'rgba(99, 102, 241, 0.5)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(99, 102, 241, 0.1)',
+                    },
+                  }}
+                  onClick={() => navigate(`/projects/${project.id}`)}
                 >
-                  New Issue
-                </Button>
-              </Box>
-              {recentIssues.length === 0 ? (
-                <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
-                  No issues yet. Create your first issue to get started!
-                </Typography>
-              ) : (
-                <List>
-                  {recentIssues.map((issue) => (
-                    <ListItem key={issue.id} button onClick={() => navigate(`/issues/${issue.id}`)}>
-                      <ListItemIcon>
-                        {issue.labels?.includes('bug') ? <BugIcon /> : <AssignmentIcon />}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={issue.title}
-                        secondary={
-                          <Box display="flex" alignItems="center" gap={1} mt={0.5}>
-                            <Chip
-                              label={issue.status}
-                              size="small"
-                              color={getStatusColor(issue.status)}
-                            />
-                            <Chip
-                              label={issue.priority}
-                              size="small"
-                              color={getPriorityColor(issue.priority)}
-                            />
-                            {issue.assignee && (
-                              <Avatar
-                                src={issue.assignee.avatarUrl}
-                                alt={issue.assignee.name}
-                                sx={{ width: 20, height: 20 }}
-                              />
-                            )}
-                          </Box>
-                        }
+                  <CardContent sx={{ p: 3 }}>
+                    <Box display="flex" alignItems="start" justifyContent="space-between" mb={2}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          bgcolor: 'rgba(99, 102, 241, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Folder size={24} color="#6366F1" />
+                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/projects/${project.id}`)
+                        }}
+                      >
+                        <ArrowRight size={16} />
+                      </IconButton>
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                      {project.name}
+                    </Typography>
+                    {project.description && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {project.description}
+                      </Typography>
+                    )}
+                    <Box display="flex" gap={2} mt={2}>
+                      <Chip
+                        label={`${project._count?.issues || 0} issues`}
+                        size="small"
+                        sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)' }}
                       />
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+                      <Chip
+                        label={`${project._count?.milestones || 0} milestones`}
+                        size="small"
+                        sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)' }}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Box>
+
+      <CreateProjectModal
+        open={createProjectOpen}
+        onClose={() => setCreateProjectOpen(false)}
+        onCreated={handleProjectCreated}
+      />
     </Box>
   )
 }

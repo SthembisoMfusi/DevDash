@@ -8,7 +8,7 @@ import {
   Container,
   Avatar,
 } from '@mui/material'
-import { GitHub } from '@mui/icons-material'
+import { Github } from 'lucide-react'
 
 function LoginPage() {
   const handleGitHubLogin = () => {
@@ -16,59 +16,150 @@ function LoginPage() {
   }
 
   return (
-    <Container component="main" maxWidth="sm">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0A0A0A 0%, #1A1A2E 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Animated background elements */}
       <Box
         sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          position: 'absolute',
+          width: '300px',
+          height: '300px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)',
+          top: '10%',
+          left: '20%',
+          animation: 'pulse 4s ease-in-out infinite',
         }}
-      >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main', width: 64, height: 64 }}>
-          <GitHub sx={{ fontSize: 40 }} />
-        </Avatar>
-        <Typography component="h1" variant="h4" gutterBottom>
-          DevDash
-        </Typography>
-        <Typography variant="h6" color="text.secondary" align="center" gutterBottom>
-          Agile Project Tracker for Developers
-        </Typography>
-        <Card sx={{ mt: 3, width: '100%' }}>
-          <CardContent sx={{ p: 4 }}>
-            <Typography variant="h5" component="h2" gutterBottom align="center">
-              Welcome to DevDash
-            </Typography>
-            <Typography variant="body1" color="text.secondary" align="center" paragraph>
-              Seamlessly manage your projects with GitHub integration. Track issues, 
-              manage milestones, and automate your development workflow.
-            </Typography>
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<GitHub />}
-                onClick={handleGitHubLogin}
-                sx={{ px: 4, py: 1.5 }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+          bottom: '10%',
+          right: '20%',
+          animation: 'pulse 5s ease-in-out infinite',
+        }}
+      />
+
+      <Container component="main" maxWidth="sm">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            zIndex: 1,
+            position: 'relative',
+          }}
+        >
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              bgcolor: 'rgba(99, 102, 241, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 3,
+            }}
+          >
+            <Github size={48} color="#6366F1" strokeWidth={1.5} />
+          </Box>
+
+          <Typography
+            component="h1"
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              mb: 1,
+              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            DevDash
+          </Typography>
+
+          <Typography variant="h6" color="text.secondary" align="center" gutterBottom>
+            Agile Project Tracker for Developers
+          </Typography>
+
+          <Card
+            sx={{
+              mt: 4,
+              width: '100%',
+              bgcolor: 'rgba(21, 21, 21, 0.8)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Typography
+                variant="h5"
+                component="h2"
+                sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}
               >
-                Login with GitHub
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Features:
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            • GitHub Integration • Issue Tracking • Milestone Management
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            • Automated Workflows • Real-time Updates • Team Collaboration
-          </Typography>
+                Welcome to DevDash
+              </Typography>
+              <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4 }}>
+                Seamlessly manage your projects with GitHub integration. Track issues, manage
+                milestones, and automate your development workflow.
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<Github size={24} />}
+                  onClick={handleGitHubLogin}
+                  sx={{
+                    px: 6,
+                    py: 1.5,
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                  }}
+                >
+                  Login with GitHub
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Features:
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • GitHub Integration • Issue Tracking • Milestone Management
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Automated Workflows • Real-time Updates • Team Collaboration
+            </Typography>
+          </Box>
         </Box>
-      </Box>
-    </Container>
+      </Container>
+
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+          }
+        `}
+      </style>
+    </Box>
   )
 }
 
